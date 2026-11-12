@@ -6,7 +6,7 @@
 
 - **Live app:** https://docs-app-bice.vercel.app/
 - **Source code (GitHub):** https://github.com/nnh26/docs-app
-- **Walkthrough video:** [paste your Loom or YouTube link here]
+- **Walkthrough video:** https://youtu.be/sY-B86tOdkM
 
 ## What is included in this folder
 
