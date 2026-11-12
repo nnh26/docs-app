@@ -3,6 +3,7 @@
 A small full-stack app for creating, editing, uploading, and sharing rich-text documents. Built for the Ajaia AI-Native Full Stack Developer assignment.
 
 **Live app:** https://docs-app-bice.vercel.app/
+**Source code:** https://github.com/nnh26/docs-app
 
 ## What it does
 
