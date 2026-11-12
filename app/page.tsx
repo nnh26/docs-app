@@ -1,69 +1,107 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { api, getCurrentUserId } from "@/lib/api";
+import UploadButton from "@/app/components/UploadButton";
+
+type Doc = {
+  id: string;
+  title: string;
+  updated_at: string;
+  owner_id: string;
+  owner: { name: string } | null;
+};
+
+function DocRow({ doc, shared }: { doc: Doc; shared: boolean }) {
+  return (
+    <li>
+      <Link
+        href={`/docs/${doc.id}`}
+        className="flex items-center justify-between rounded border border-gray-300 px-4 py-3 hover:border-gray-500"
+      >
+        <div>
+          <div className="font-medium">{doc.title}</div>
+          <div className="text-xs opacity-70">
+            Updated {new Date(doc.updated_at).toLocaleString()}
+          </div>
+        </div>
+        <span className="rounded-full border border-gray-400 px-2 py-0.5 text-xs">
+          {shared ? `Shared by ${doc.owner?.name ?? "someone"}` : "Owned"}
+        </span>
+      </Link>
+    </li>
+  );
+}
 
 export default function Home() {
+  const router = useRouter();
+  const [owned, setOwned] = useState<Doc[]>([]);
+  const [shared, setShared] = useState<Doc[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!getCurrentUserId()) return;
+    api("/api/documents")
+      .then((data) => {
+        setOwned(data.owned);
+        setShared((data.shared as Doc[]).filter(Boolean));
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  async function createDoc() {
+    try {
+      const doc = await api("/api/documents", {
+        method: "POST",
+        body: JSON.stringify({}),
+      });
+      router.push(`/docs/${doc.id}`);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div>
+      <div className="mb-6 flex items-start justify-between">
+        <h1 className="text-2xl font-semibold">Documents</h1>
+        <div className="flex items-start gap-3">
+          <UploadButton />
+          <button
+            onClick={createDoc}
+            className="rounded border border-gray-500 px-4 py-2 text-sm font-medium hover:bg-gray-500/10"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            New document
+          </button>
         </div>
-      </main>
+      </div>
+
+      {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
+      {loading && <p className="text-sm opacity-70">Loading...</p>}
+
+      <h2 className="mb-2 mt-4 text-lg font-medium">My documents</h2>
+      {!loading && owned.length === 0 && (
+        <p className="text-sm opacity-70">No documents yet. Create one above.</p>
+      )}
+      <ul className="space-y-2">
+        {owned.map((d) => (
+          <DocRow key={d.id} doc={d} shared={false} />
+        ))}
+      </ul>
+
+      <h2 className="mb-2 mt-8 text-lg font-medium">Shared with me</h2>
+      {!loading && shared.length === 0 && (
+        <p className="text-sm opacity-70">Nothing has been shared with you yet.</p>
+      )}
+      <ul className="space-y-2">
+        {shared.map((d) => (
+          <DocRow key={d.id} doc={d} shared={true} />
+        ))}
+      </ul>
     </div>
   );
 }
