@@ -87,3 +87,30 @@ export async function PATCH(request: Request, { params }: Context) {
 
   return NextResponse.json(data);
 }
+
+export async function DELETE(request: Request, { params }: Context) {
+  const { id } = await params;
+  const userId = request.headers.get("x-user-id");
+  if (!userId) {
+    return NextResponse.json({ error: "Missing user" }, { status: 401 });
+  }
+
+  const access = await checkDocumentAccess(id, userId);
+  if (!access.exists) {
+    return NextResponse.json({ error: "Document not found" }, { status: 404 });
+  }
+  if (!access.isOwner) {
+    return NextResponse.json(
+      { error: "Only the owner can delete this document" },
+      { status: 403 }
+    );
+  }
+
+  const { error } = await supabase.from("documents").delete().eq("id", id);
+
+  if (error) {
+    return NextResponse.json({ error: "Could not delete document" }, { status: 500 });
+  }
+
+  return NextResponse.json({ deleted: true });
+}

@@ -20,3 +20,5 @@
 - Editor loaded after fixing the owner:users!owner_id select. Tested autosave and refresh persistence by hand
 - Hand testing sharing, no access: everything checks out
 - Claude wrote the access unit tests. The first plan imported the Supabase client, which would crash without env vars, so I moved the pure access rule into lib/permissions.ts and tested that
+- I wanted to delete the test.md document I had uploaded before recording the demo video, but the app had no delete feature and I couldn't remove it without database access. Since I had time left, I asked Claude to add an owner-only delete route and a Delete button. Claude wrote the route and the page change, and I tested it: the confirm prompt can be cancelled, a confirmed delete returns me to the list with the document gone, and a shared user (Alice) sees no Delete button.
+- I updated the README, ARCHITECTURE.md, and SUBMISSION.md so they say delete is supported and the cut list only mentions unsharing and view-only permissions.

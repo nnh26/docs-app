@@ -23,7 +23,7 @@ One rule decides everything: a user can open a document if they own it or have a
 
 - The rule lives in `lib/permissions.ts` as a plain function with no database code, so it can be unit tested quickly.
 - `lib/access.ts` loads the document and its shares and applies that rule. Every document route calls it first and returns 404 (not found) or 403 (no access) before doing anything else.
-- Only the owner can share a document. Shared users can read and edit.
+- Only the owner can share or delete a document. Shared users can read and edit.
 
 ## Request flow
 
@@ -35,17 +35,18 @@ The browser stores the selected user in `localStorage` and sends their ID in an 
 2. **One clear permission rule used everywhere**, instead of scattered checks, so sharing behavior is easy to reason about and test.
 3. **Validation and clear errors** on every route (empty titles, bad file types, oversized files, sharing with yourself).
 4. **Deployment and tests early**, because those are the parts that tend to fail late.
+5. **A delete button, added late.** I added owner-only delete after the core flow worked, because I needed it to clean up test uploads and had time left.
 
 ## What I deliberately cut
 
 - **Real authentication.** The user switcher is a mocked login, which the assignment allows. It means anyone can pick any user, so it is not secure. Supabase Auth plus row-level security policies would be the first upgrade.
 - **Real-time collaboration.** Simultaneous edits to one document result in last-save-wins.
-- **Unsharing, deleting documents, and view-only permissions.**
+- **Unsharing and view-only permissions.**
 - **`.docx` import.** Upload supports `.txt` and `.md` only, and the limit is stated in the UI.
 
 ## Testing
 
-Vitest unit tests cover the access rule: the owner can access, a shared user can access, a stranger cannot, and nothing leaks when nothing is shared. I also tested the full flow by hand on the live deployment: create, edit, refresh, share, view as the shared user, upload, and the blocked-access case.
+Vitest unit tests cover the access rule: the owner can access, a shared user can access, a stranger cannot, and nothing leaks when nothing is shared. I also tested the full flow by hand on the live deployment: create, edit, refresh, share, view as the shared user, upload, delete, and the blocked-access case.
 
 ## Next steps with 2 to 4 more hours
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Editor from "@/app/components/Editor";
 import SharePanel from "@/app/components/SharePanel";
@@ -17,6 +17,7 @@ type Doc = {
 
 function DocContent() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [doc, setDoc] = useState<Doc | null>(null);
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState("");
@@ -62,6 +63,17 @@ function DocContent() {
     }
   }
 
+  async function deleteDoc() {
+    if (!window.confirm(`Delete "${doc?.title}"? This cannot be undone.`)) return;
+    if (timer.current) clearTimeout(timer.current);
+    try {
+      await api(`/api/documents/${id}`, { method: "DELETE" });
+      router.push("/");
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   if (error && !doc) {
     return (
       <div>
@@ -77,9 +89,19 @@ function DocContent() {
 
   return (
     <div>
-      <Link href="/" className="text-sm underline">
-        Back to documents
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link href="/" className="text-sm underline">
+          Back to documents
+        </Link>
+        {doc.isOwner && (
+          <button
+            onClick={deleteDoc}
+            className="rounded border border-red-500 px-3 py-1 text-sm text-red-500 hover:bg-red-500/10"
+          >
+            Delete document
+          </button>
+        )}
+      </div>
       <div className="my-4 flex items-center justify-between gap-4">
         <input
           value={title}

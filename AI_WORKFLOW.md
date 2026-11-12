@@ -11,6 +11,7 @@
 - **Boilerplate.** The Tiptap editor setup, the API routes with validation, the share panel, and the upload converter were drafted by Claude, which saved the most time on the editor toolbar and the Supabase queries.
 - **Debugging.** When I pasted terminal output and browser errors, Claude located the cause quickly instead of me searching through docs.
 - **Writing.** The README, architecture note, and this note started as drafts that I then edited.
+- **A late scope addition.** I wanted to delete an uploaded test file before recording the demo, but the app had no way to do it. Since I had time left, Claude drafted an owner-only delete route and button, which I tested by hand before updating the docs to match.
 
 ## What I changed or rejected
 
